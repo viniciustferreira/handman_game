@@ -10,42 +10,51 @@ defmodule HangmanGame do
     game("", :player1, 0)
   end
 
-  def game(keyword, player, lifes) do
+  def game(keyword, player, lives) do
     case player do
       :player1 -> player1_game()
 
-      :player2 -> player2_game(keyword, lifes)
+      :player2 -> player2_game(keyword, lives)
     end
   end
 
   defp player1_game do
-    keyword = IO.gets("Jogador 1: insira uma palavra para a forca: ")|> String.trim()
-    lifes = IO.gets("Jogador 1: insira a quantidade de vidas: ")
-        |> String.trim()
-        |> String.to_integer()
+    keyword = IO.gets("Jogador 1: insira uma palavra para a forca: ")
+    lives = IO.gets("Jogador 1: insira a quantidade de vidas: ")
 
-    game(create_keyword_struct(keyword), :player2, lifes)
+    amount_lives = lives
+    |> String.trim()
+    |> String.to_integer()
+
+    game(create_keyword_struct(keyword), :player2, amount_lives)
   end
 
   defp create_keyword_struct(keyword) do
-    [Enum.map(String.split(keyword, "", trim: true), fn char  -> {char, 0} end), keyword]
+    keyword_struct = keyword
+    |> String.trim()
+    |> String.split("", trim: true)
+    |> Enum.map( fn char  -> {char, 0} end)
+
+    [keyword_struct, keyword]
   end
 
-  defp player2_game(_keywords, lifes) when lifes == 0, do: game_over("Acabaram as vidas: FIM DE JOGO.")
+  defp player2_game(_keywords, lives) when lives == 0, do: game_over("Acabaram as vidas: FIM DE JOGO.")
 
-  defp player2_game([keyword_struct, keyword], lifes) do
+  defp player2_game([keyword_struct, keyword], lives) do
     IO.puts("\e[H\e[2J")
 
     show_words(keyword_struct)
 
-    if is_game_over?(keyword_struct), do: game_over("\n A palavra é: #{keyword}. Você venceu!") 
+    if is_game_over?(keyword_struct), do: game_over("\n Você venceu!")
 
-    guess = IO.gets("\n Jogador 2[vidas: #{lifes}]: insira uma letra para adivinhar a palavra:") |> String.trim()
+    guess = IO.gets("\n Jogador 2[vidas: #{lives}]: insira uma letra para adivinhar a palavra:")
+
+    guess = String.trim(guess)
 
     if String.contains?(keyword, guess) do
-      game([updating_keyword_struct(keyword_struct, guess), keyword], :player2, lifes)
+      game([updating_keyword_struct(keyword_struct, guess), keyword], :player2, lives)
     else
-      game([keyword_struct, keyword], :player2, lifes - 1)
+      game([keyword_struct, keyword], :player2, lives - 1)
     end
   end
 
